@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مسابقة الأنبياء والرسل</title>
+<style>
+:root{--g:#124a36;--g2:#206348;--gold:#d9b66a;--cream:#fbf7ec;--ink:#25372d}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:Tahoma,Arial,sans-serif;line-height:1.9;background-color:var(--cream);background-image:repeating-linear-gradient(45deg,transparent,transparent 35px,#d9b66a0c 35px,#d9b66a0c 37px),repeating-linear-gradient(-45deg,transparent,transparent 35px,#124a3608 35px,#124a3608 37px)}
+header{background:linear-gradient(135deg,#0c3326,#206348);color:#fff;text-align:center;padding:28px 12px;border-bottom:5px solid var(--gold);position:relative}
+header:before,header:after{content:"✦ ❖ ✦";display:block;color:var(--gold);letter-spacing:8px;font-size:18px}
+h1{margin:4px 0;font-size:clamp(25px,5vw,38px)}
+header p{margin:0;color:#f0dfb3}
+main{max-width:850px;margin:22px auto;padding:0 13px 95px}
+.panel{background:#fffefaed;border:1px solid #ddcca2;border-radius:18px;padding:22px;box-shadow:0 6px 22px #173d2b12;margin-bottom:18px}
+h2{color:var(--g);margin-top:0}
+button{font: bold 16px Tahoma,Arial,sans-serif;border:0;border-radius:11px;padding:12px 18px;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--g);color:white}.secondary{background:#f3e7c8;color:#493719}.danger{background:#f5e5df;color:#8b3026}
+.center{text-align:center}.hidden{display:none!important}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px}
+.meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;color:#68736a}
+.progress-wrap{height:10px;background:#eee8d9;border-radius:20px;overflow:hidden;margin:12px 0}
+.progress{height:100%;background:var(--gold);width:0;transition:width .2s}
+.question{font-size:21px;font-weight:bold;margin:22px 0 16px}
+.options{display:grid;gap:10px}
+.option{background:#fffdf7;border:1px solid #ded5c0;text-align:right;width:100%;font-weight:normal;line-height:1.8}
+.option:hover{border-color:var(--g);background:#f4f8f2}
+.option.selected{background:#e4f0e5;border:2px solid var(--g)}
+.feedback{margin-top:14px;padding:12px;background:#f5efdf;border-radius:10px}
+.stat{display:inline-block;background:#f6f0df;padding:9px 15px;border-radius:10px;margin:4px}
+.review-item{border-bottom:1px solid #eee5d3;padding:13px 0}
+.small{font-size:14px;color:#68736a}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fffdf7ed;border-top:1px solid #ddcca2;padding:10px;text-align:center;z-index:5}
+footer a{display:inline-block;background:var(--g);color:white;text-decoration:none;padding:7px 20px;border-radius:30px;font-weight:bold}
+@media(max-width:520px){.panel{padding:16px}.question{font-size:18px}button{font-size:15px;padding:11px 13px}.actions button{flex:1}}
+</style>
+</head>
+<body>
+<header>
+<div style="font-size:36px">۞</div>
+<h1>مسابقة الأنبياء والرسل</h1>
+<p>رحلة إيمانية في قصص الأنبياء كما وردت في القرآن الكريم</p>
+<div style="font-size:22px;color:#e7cb87">❖ ✦ ❖</div>
+</header>
+<main>
+<section id="welcome" class="panel center">
+<div style="font-size:52px">🕌</div>
+<h2>هل تعرف قصص الأنبياء والرسل؟</h2>
+<p>اختبر معلوماتك في مسابقة إسلامية تضم <strong>100 سؤال</strong> متدرّج الصعوبة، من السهل إلى المتقدم.</p>
+<p style="color:#99752d;font-weight:bold">5 مراحل • 20 سؤالًا في كل مرحلة • نتيجة ومراجعة للإجابات</p>
+<p class="small">تستند الأسئلة إلى ما ورد في القرآن الكريم، مع تجنّب الجزم بالتفاصيل التي لم يثبت بها نص.</p>
+<button class="primary" onclick="startQuiz()">ابدأ المسابقة</button>
+</section>
+
+<section id="quiz" class="panel hidden">
+<div class="meta"><span id="stageLabel"></span><span id="questionLabel"></span></div>
+<div class="progress-wrap"><div id="progress" class="progress"></div></div>
+<div id="question" class="question"></div>
+<div id="options" class="options"></div>
+<div id="feedback" class="feedback hidden"></div>
+<div class="actions">
+<button id="nextBtn" class="primary" onclick="nextQuestion()" disabled>السؤال التالي</button>
+<button class="secondary" onclick="askFinish()">إنهاء المسابقة</button>
+</div>
+</section>
+
+<section id="stageResult" class="panel center hidden">
+<div style="font-size:48px">🏆</div>
+<h2 id="resultTitle"></h2>
+<h2 style="color:#99752d">أحسنت، أنت رائع!</h2>
+<div id="stageScore"></div>
+<p id="stageMessage"></p>
+<div class="actions">
+<button id="continueBtn" class="primary" onclick="continueStage()">المرحلة التالية</button>
+<button class="secondary" onclick="showReview()">مراجعة الإجابات</button>
+<button class="danger" onclick="finishQuiz()">إنهاء المسابقة</button>
+</div>
+</section>
+
+<section id="finalResult" class="panel center hidden">
+<div style="font-size:50px">🎓</div>
+<h2>انتهت المسابقة!</h2>
+<div id="finalScore"></div>
+<p id="finalMessage"></p>
+<div id="allStages"></div>
+<div class="actions">
+<button class="primary" onclick="showReview()">مراجعة الإجابات</button>
+<button class="secondary" onclick="restartQuiz()">إعادة المسابقة</button>
+</div>
+</section>
+
+<section id="review" class="panel hidden">
+<h2>مراجعة الإجابات</h2>
+<p class="small">الإجابات الصحيحة موضحة لكل سؤال تمت الإجابة عنه.</p>
+<div id="reviewList"></div>
+<div class="actions">
+<button class="primary" onclick="backFromReview()">العودة</button>
+<button class="secondary" onclick="restartQuiz()">إعادة المسابقة</button>
+</div>
+</section>
+</main>
+<footer><a href="https://www.instagram.com/wael_dahshan/?utm_source=qr&rpxt=cmZ6M2F5Y3c0ajJ0" target="_blank" rel="noopener">تابعوا وائل دهشان على إنستغرام</a></footer>
+
+<script>
+const Q = [
+/* المرحلة الأولى: أسئلة عامة وسهلة (1–20) */
+["من أول البشر والأنبياء؟",["آدم عليه السلام","نوح عليه السلام","إبراهيم عليه السلام","موسى عليه السلام"],0],
+["من النبي الذي ابتلعه الحوت؟",["يوسف","يونس","أيوب","هود"],1],
+["من النبي الذي كلّمه الله؟",["صالح","إسماعيل","موسى","لوط"],2],
+["من النبي الذي بنى السفينة بأمر الله؟",["نوح","إبراهيم","داود","زكريا"],0],
+["من النبي الذي أُلقي في النار فجعلها الله بردًا وسلامًا عليه؟",["يعقوب","إبراهيم","هارون","شعيب"],1],
+["من النبي الذي اشتهر بتفسير الرؤى في قصته؟",["يوسف","إدريس","إلياس","يحيى"],0],
+["من النبي الذي أُعطي الزبور؟",["سليمان","داود","موسى","عيسى"],1],
+["من النبي الذي أُنزل عليه الإنجيل؟",["محمد","إبراهيم","عيسى","نوح"],2],
+["من النبي الذي أُنزلت عليه التوراة؟",["موسى","داود","يوسف","لوط"],0],
+["من خاتم الأنبياء والمرسلين؟",["إبراهيم","عيسى","موسى","محمد ﷺ"],3],
+["من النبي الذي كان أبًا لإسحاق؟",["إبراهيم","يعقوب","يوسف","زكريا"],0],
+["من النبي الذي كان ابن يعقوب؟",["هود","يوسف","صالح","إدريس"],1],
+["من النبي الذي كان أخًا لموسى وأُرسل معه إلى فرعون؟",["إسماعيل","هارون","داود","أيوب"],1],
+["من النبي الذي صنع الله له الحديد؟",["داود","نوح","يونس","لوط"],0],
+["من النبي الذي فهم منطق الطير بإذن الله؟",["إبراهيم","سليمان","موسى","زكريا"],1],
+["من النبي الذي دعا ربّه أن يهب له غلامًا مع كبر سنه؟",["زكريا","هود","صالح","شعيب"],0],
+["من النبي الذي بُشّر بيحيى؟",["يعقوب","زكريا","إبراهيم","نوح"],1],
+["من النبي الذي رفعه الله مكانًا عليًّا كما ورد في القرآن؟",["إدريس","هود","لوط","إسماعيل"],0],
+["من النبي الذي أُرسل إلى قوم عاد؟",["صالح","هود","شعيب","يونس"],1],
+["من النبي الذي أُرسل إلى ثمود؟",["صالح","نوح","لوط","إلياس"],0],
+
+/* المرحلة الثانية: قصص الأنبياء (21–40) */
+["من النبي الذي أُرسل إلى أهل مدين؟",["شعيب","هود","إدريس","هارون"],0],
+["من النبي الذي دعا قومه إلى ترك عبادة الأصنام وبناء السفينة؟",["نوح","يوسف","داود","يحيى"],0],
+["من النبي الذي رأى في المنام أحد عشر كوكبًا والشمس والقمر؟",["موسى","يوسف","إبراهيم","سليمان"],1],
+["من النبي الذي قال: «إني سقيم» في سياق قصته مع قومه؟",["إبراهيم","أيوب","نوح","لوط"],0],
+["من النبي الذي ترك قومه مغاضبًا فابتلعه الحوت؟",["يونس","صالح","هود","زكريا"],0],
+["من النبي الذي صبر على المرض والابتلاء ودعا ربّه؟",["أيوب","هارون","إدريس","شعيب"],0],
+["من النبي الذي قال: «رب اشرح لي صدري»؟",["موسى","يوسف","عيسى","داود"],0],
+["من النبي الذي أُلقي في الجب صغيرًا؟",["يوسف","إسماعيل","يحيى","إلياس"],0],
+["من النبي الذي رأى في المنام أنه يذبح ابنه، فامتثل لأمر الله؟",["إبراهيم","يعقوب","زكريا","موسى"],0],
+["من الابن الذي وردت قصته مع إبراهيم في رؤيا الذبح، على الراجح عند كثير من أهل العلم؟",["إسحاق","إسماعيل","يعقوب","يوسف"],1],
+["من النبي الذي قال لأبيه: «يا أبتِ لِمَ تعبد ما لا يسمع ولا يبصر»؟",["إبراهيم","موسى","نوح","هود"],0],
+["من النبي الذي دعا قومه ألف سنة إلا خمسين عامًا؟",["نوح","صالح","لوط","شعيب"],0],
+["من النبي الذي أرسله الله إلى قوم اشتهروا بإتيان الرجال شهوة؟",["لوط","هود","إلياس","داود"],0],
+["من النبي الذي دعا قومه إلى إيفاء الكيل والميزان؟",["شعيب","يونس","هارون","إدريس"],0],
+["من النبي الذي سأل الله أن يريه كيف يحيي الموتى؟",["إبراهيم","موسى","داود","زكريا"],0],
+["من النبي الذي ألقى عصاه فإذا هي ثعبان مبين بإذن الله؟",["موسى","يوسف","عيسى","إسماعيل"],0],
+["من النبي الذي تكلم في المهد كما ورد في القرآن؟",["يحيى","عيسى","يوسف","إدريس"],1],
+["من النبي الذي كانت معجزته إبراء الأكمه والأبرص وإحياء الموتى بإذن الله؟",["عيسى","موسى","سليمان","نوح"],0],
+["من النبي الذي قال: «لا تثريب عليكم اليوم» لإخوته؟",["يوسف","يعقوب","إبراهيم","هارون"],0],
+["من النبي الذي فقد بصره حزنًا على يوسف ثم عاد إليه بصره بإذن الله؟",["يعقوب","إسحاق","أيوب","زكريا"],0],
+
+/* المرحلة الثالثة: القرآن ومواقف الأنبياء (41–60) */
+["ما اسم والد إبراهيم الذي خاطبه في القرآن؟",["آزر","عمران","لقمان","هامان"],0],
+["ما اسم الملك الذي جادل إبراهيم في ربّه كما ورد في سورة البقرة دون تسمية صريحة في الآية؟",["النمرود في الروايات المشهورة","فرعون","طالوت","جالوت"],0],
+["ما اسم الوادي الذي نودي فيه موسى؟",["طوى","بدر","حنين","الجودي"],0],
+["على أي جبل استوت سفينة نوح وفق القرآن؟",["الجودي","الطور","أحد","الصفا"],0],
+["من الذي قال: «إني عبد الله آتاني الكتاب وجعلني نبيًا»؟",["عيسى عليه السلام","يحيى عليه السلام","يوسف عليه السلام","موسى عليه السلام"],0],
+["من النبي الذي قال: «رب إني وهن العظم مني واشتعل الرأس شيبًا»؟",["زكريا","أيوب","يعقوب","إبراهيم"],0],
+["من النبي الذي دعا: «أني مسني الضر وأنت أرحم الراحمين»؟",["أيوب","يونس","هود","إسماعيل"],0],
+["من النبي الذي دعا: «لا إله إلا أنت سبحانك إني كنت من الظالمين»؟",["يونس","يوسف","صالح","شعيب"],0],
+["من النبي الذي قال: «رب السجن أحب إلي مما يدعونني إليه»؟",["يوسف","موسى","داود","إلياس"],0],
+["من النبي الذي قال: «إنما أشكو بثي وحزني إلى الله»؟",["يعقوب","نوح","إبراهيم","زكريا"],0],
+["من النبي الذي دعا: «رب هب لي من الصالحين»؟",["إبراهيم","موسى","هارون","داود"],0],
+["من النبي الذي قال: «رب لا تذرني فردًا وأنت خير الوارثين»؟",["زكريا","إبراهيم","لوط","صالح"],0],
+["من النبي الذي أوتي الحكم صبيًا كما ورد في القرآن؟",["يحيى","يوسف","سليمان","إسحاق"],0],
+["من النبي الذي قال الله عنه إنه آتاه الحكم صبيًا؟",["يحيى","موسى","إدريس","هود"],0],
+["أي نبي دعا قومه إلى عبادة الله وحده وترك ما كانوا يعبدون من دونه؟",["جميع الأنبياء دعوا إلى التوحيد","نوح وحده","موسى وحده","يوسف وحده"],0],
+["من النبي الذي طلب من الله ملكًا لا ينبغي لأحد من بعده؟",["سليمان","داود","إبراهيم","يوسف"],0],
+["من النبي الذي ألان الله له الحديد؟",["داود","سليمان","موسى","إدريس"],0],
+["من النبي الذي أُرسل إلى بني إسرائيل وبُشّر برسول يأتي من بعده اسمه أحمد؟",["عيسى","موسى","هارون","يحيى"],0],
+["من النبي الذي قال: «رب اجعل هذا البلد آمنًا» في دعائه المشهور؟",["إبراهيم","نوح","هود","صالح"],0],
+["من النبي الذي دعا ربّه أن يجنبه وبنيه عبادة الأصنام؟",["إبراهيم","يعقوب","داود","أيوب"],0],
+
+/* المرحلة الرابعة: الأنبياء وأسرهم وأقوامهم (61–80) */
+["من النبي الذي كان ابن إبراهيم ووالد يوسف؟",["يعقوب","إسحاق","إسماعيل","هارون"],0],
+["من النبي الذي كان والد إسحاق؟",["إبراهيم","نوح","يعقوب","داود"],0],
+["من النبي الذي كان أخًا لإسماعيل من جهة الأب؟",["إسحاق","يوسف","هارون","يحيى"],0],
+["من النبي الذي كان أخًا لموسى؟",["هارون","إسماعيل","إدريس","صالح"],0],
+["من النبي الذي قال لقومه: «أوفوا الكيل ولا تكونوا من المخسرين»؟",["شعيب","هود","نوح","يونس"],0],
+["من النبي الذي قال لقومه: «يا قوم اعبدوا الله ما لكم من إله غيره» في قصة عاد؟",["هود","صالح","لوط","إلياس"],0],
+["من النبي الذي قال لقومه في قصة ثمود: «هذه ناقة الله لكم آية»؟",["صالح","هود","شعيب","نوح"],0],
+["ما الذي أرسله الله على قوم عاد كما يذكر القرآن؟",["ريحًا صرصرًا عاتية","طوفانًا فقط","جرادًا فقط","صيحة فقط"],0],
+["ما الذي أهلك قوم ثمود وفق القرآن؟",["الصيحة والرجفة في مواضع القصة","الطوفان وحده","البحر وحده","الريح اللينة"],0],
+["ما الذي نجّى الله به نوحًا والمؤمنين معه؟",["السفينة","العصا","القميص","المنّ والسلوى"],0],
+["من النبي الذي أمره الله أن يضرب البحر بعصاه فانفلق؟",["موسى","إبراهيم","داود","يوسف"],0],
+["من النبي الذي ألقى قميصه على وجه أبيه فعاد بصيرًا بإذن الله؟",["يوسف","إسماعيل","يحيى","هارون"],0],
+["من النبي الذي أُعطي ملكًا وحكمة وفصل الخطاب؟",["داود","نوح","لوط","زكريا"],0],
+["من النبي الذي سخّر الله له الريح والجن بإذنه؟",["سليمان","إبراهيم","صالح","أيوب"],0],
+["من النبي الذي كان نجارًا أو حدادًا وفق نص قرآني صريح؟",["لا يحدد القرآن مهنة بهذه الصيغة لكل نبي","كل الأنبياء حدادون","يوسف وحده حداد","يونس وحده نجار"],0],
+["من النبي الذي كفل مريم كما ورد في القرآن؟",["زكريا","إبراهيم","موسى","داود"],0],
+["من النبي الذي وُلد من غير أب؟",["عيسى","يحيى","إسحاق","يوسف"],0],
+["من النبي الذي كانت أمه مريم عليها السلام؟",["عيسى","موسى","يحيى","إسماعيل"],0],
+["من النبي الذي أُرسل إلى فرعون مع موسى؟",["هارون","يوسف","إدريس","شعيب"],0],
+["من النبي الذي قال: «رب إني ظلمت نفسي فاغفر لي» بعد أن وكز رجلًا فقضى عليه؟",["موسى","داود","يوسف","سليمان"],0],
+
+/* المرحلة الخامسة: أسئلة أعمق ومتنوعة (81–100) */
+["كم عدد الأنبياء الذين ذُكرت أسماؤهم صراحة في القرآن الكريم؟",["25 نبيًا ورسولًا","10","40","100"],0],
+["أي سورة سُمّيت باسم نبي من أنبياء الله؟",["سورة يونس","سورة فرعون","سورة هامان","سورة طالوت"],0],
+["أي سورة سُمّيت باسم نبي آخر غير يونس؟",["سورة إبراهيم","سورة آزر","سورة هارون","سورة زكريا"],0],
+["أي سورة سُمّيت باسم يوسف عليه السلام؟",["سورة يوسف","سورة يعقوب","سورة بني إسرائيل فقط","سورة العزيز"],0],
+["أي نبي وردت قصته مفصلة في سورة مريم؟",["زكريا ويحيى وعيسى وغيرهم","فرعون وحده","قارون وحده","جالوت وحده"],0],
+["من النبي الذي دعا على قومه بعد إصرارهم على الكفر، وورد دعاؤه في سورة نوح؟",["نوح","هود","صالح","شعيب"],0],
+["من النبي الذي أمره الله أن يأخذ الكتاب بقوة، وكان صبيًا؟",["يحيى","يوسف","إسحاق","إدريس"],0],
+["أي نبي قال: «إن ربي لطيف لما يشاء» في قصة اجتماع الأسرة بمصر؟",["يوسف","موسى","داود","يونس"],0],
+["من النبي الذي قال: «هذا من فضل ربي ليبلوني أأشكر أم أكفر»؟",["سليمان","إبراهيم","نوح","هارون"],0],
+["في قصة سليمان، من الذي جاءه بخبر سبأ؟",["الهدهد","الغراب","النملة وحدها","الحوت"],0],
+["ما اسم ملكة سبأ المذكور صراحة في القرآن؟",["لم يذكر القرآن اسمها","بلقيس","آسية","سارة"],0],
+["ما اسم ابن نوح الذي رفض ركوب السفينة؟",["لم يذكر القرآن اسمه","كنعان صراحة في الآية","سام","حام"],0],
+["ما اسم زوجة فرعون المؤمنة التي ضرب الله بها مثلًا للمؤمنين؟",["لم يسمّها القرآن باسمها، وتُعرف في الروايات بآسية","سارة","هاجر","مريم"],0],
+["أي نبي كان أبوه نبيًا وابنه نبيًا وفق المشهور في سلسلة أنبياء بني إسرائيل؟",["يعقوب","هود","صالح","يونس"],0],
+["ما الذي يميز دعوة الأنبياء جميعًا في أصل الرسالة؟",["الدعوة إلى عبادة الله وحده","طلب المال من الأقوام","الدعوة إلى عبادة النجوم","الانتماء إلى قوم واحد"],0],
+["هل ذكر القرآن أسماء جميع الأنبياء الذين أرسلهم الله؟",["لا، ذكر بعضهم ولم يذكر بعضًا","نعم، ذكر أسماءهم جميعًا","ذكر عشرة فقط","لم يذكر أي اسم"],0],
+["ما الموقف الصحيح من التفاصيل القصصية التي لم يثبتها القرآن أو السنة الصحيحة؟",["لا نجزم بها على أنها حقائق دينية","نعدّها كلها يقينية","نضيفها إلى القرآن","نلزم الناس بها"],0],
+["ما الواجب تجاه جميع أنبياء الله؟",["الإيمان بهم وتعظيمهم بما يليق بمقام النبوة","الإيمان ببعضهم فقط","التفريق بينهم في أصل التصديق","رفض أخبارهم جميعًا"],0],
+["من النبي الذي ابتلاه الله وقومه بالطوفان، ثم نجّى المؤمنين في السفينة؟",["نوح","إبراهيم","إسماعيل","يحيى"],0],
+["ما أفضل طريقة للاستفادة من قصص الأنبياء؟",["التأمل في التوحيد والصبر والتوكل والأخلاق والعمل بها","حفظ الأسماء دون فهم","التركيز على القصص غير الموثقة","اعتبار القصص للتسلية فقط"],0]
+];
+
+const stages=[
+"المرحلة الأولى: التعرف إلى الأنبياء",
+"المرحلة الثانية: قصص الأنبياء",
+"المرحلة الثالثة: الأنبياء في القرآن",
+"المرحلة الرابعة: الأقوام والمواقف",
+"المرحلة الخامسة: التحدي المتقدم"
+];
+let current=0,answers=[],stageScores=[],reviewReturn="stageResult";
+
+function showOnly(id){
+["welcome","quiz","stageResult","finalResult","review"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+}
+function startQuiz(){
+current=0;answers=Array(Q.length).fill(null);stageScores=[];
+showOnly("quiz");renderQuestion();
+}
+function renderQuestion(){
+const q=Q[current],s=Math.floor(current/20),n=current%20;
+document.getElementById("stageLabel").textContent=stages[s];
+document.getElementById("questionLabel").textContent="السؤال "+(n+1)+" من 20";
+document.getElementById("progress").style.width=((n+1)/20*100)+"%";
+document.getElementById("question").textContent=(current+1)+". "+q[0];
+const box=document.getElementById("options");box.innerHTML="";
+q[1].forEach((text,i)=>{
+const b=document.createElement("button");b.className="option";
+b.textContent=["أ","ب","ج","د"][i]+") "+text;
+if(answers[current]===i)b.classList.add("selected");
+b.onclick=()=>selectAnswer(i);box.appendChild(b);
+});
+document.getElementById("feedback").classList.add("hidden");
+document.getElementById("nextBtn").disabled=answers[current]===null;
+document.getElementById("nextBtn").textContent=n===19?"عرض نتيجة المرحلة":"السؤال التالي";
+}
+function selectAnswer(i){
+answers[current]=i;
+document.querySelectorAll(".option").forEach((b,n)=>b.classList.toggle("selected",n===i));
+document.getElementById("nextBtn").disabled=false;
+}
+function nextQuestion(){
+if(answers[current]===null)return;
+if(current%20===19){showStageResult();return;}
+current++;renderQuestion();
+}
+function getScore(start,end){
+let score=0;
+for(let i=start;i<end;i++)if(answers[i]===Q[i][2])score++;
+return score;
+}
+function showStageResult(){
+const s=Math.floor(current/20),score=getScore(s*20,s*20+20);
+stageScores[s]=score;showOnly("stageResult");
+document.getElementById("resultTitle").textContent=stages[s];
+document.getElementById("stageScore").innerHTML='<span class="stat">النتيجة: <b>'+score+' / 20</b></span><span class="stat">النسبة: <b>'+score*5+'%</b></span>';
+document.getElementById("stageMessage").textContent=score>=17?"ممتاز! إجاباتك تدل على معرفة قوية.":score>=12?"أداء جيد، واصل التعلم والمراجعة.":"واصل المحاولة، فكل سؤال فرصة للتعلم.";
+const btn=document.getElementById("continueBtn");
+if(s===4){btn.textContent="عرض النتيجة النهائية";btn.onclick=finishQuiz;}
+else{btn.textContent="استمرار إلى المرحلة التالية";btn.onclick=continueStage;}
+}
+function continueStage(){current++;showOnly("quiz");renderQuestion();}
+function askFinish(){
+if(confirm("هل تريد إنهاء المسابقة وعرض النتيجة الحالية؟"))finishQuiz();
+}
+function finishQuiz(){
+const total=answers.reduce((sum,a,i)=>sum+(a!==null&&a===Q[i][2]?1:0),0);
+showOnly("finalResult");
+document.getElementById("finalScore").innerHTML='<span class="stat">نتيجتك: <b>'+total+' / 100</b></span><span class="stat">النسبة: <b>'+total+'%</b></span>';
+document.getElementById("finalMessage").textContent=total>=90?"ممتاز جدًا! أحسنت في هذا التحدي.":total>=75?"أحسنت! لديك معرفة طيبة بقصص الأنبياء.":total>=50?"نتيجة جيدة كبداية، ويمكنك تحسينها بالمراجعة.":"لا تيأس؛ راجع الإجابات وحاول مرة أخرى.";
+document.getElementById("allStages").innerHTML=stageScores.map((s,i)=>'<span class="stat">'+stages[i].split(":")[0]+': '+s+'/20</span>').join("");
+reviewReturn="finalResult";
+}
+function showReview(){
+reviewReturn=document.getElementById("stageResult").classList.contains("hidden")?"finalResult":"stageResult";
+const list=document.getElementById("reviewList");list.innerHTML="";
+Q.forEach((q,i)=>{
+if(answers[i]===null)return;
+const chosen=answers[i],correct=q[2],item=document.createElement("div");
+item.className="review-item";
+const title=document.createElement("strong");title.textContent=(i+1)+". "+q[0];item.appendChild(title);
+const p=document.createElement("p");p.textContent="إجابتك: "+q[1][chosen];p.style.color=chosen===correct?"#28713b":"#a6332b";item.appendChild(p);
+const answer=document.createElement("p");answer.textContent=chosen===correct?"✓ إجابة صحيحة":"الإجابة الصحيحة: "+q[1][correct];item.appendChild(answer);
+list.appendChild(item);
+});
+showOnly("review");
+}
+function backFromReview(){showOnly(reviewReturn);}
+function restartQuiz(){
+if(confirm("هل تريد إعادة المسابقة من البداية؟"))startQuiz();
+}
+</script>
+</body>
+</html>
